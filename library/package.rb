@@ -226,20 +226,18 @@ class Package < TargetBase
       cxx_comp += " -isysroot #{Build.sysroot_inc(abi)}"
       cxx_comp += " -isystem #{Build.sysroot_inc_arch(abi)}"
 
-      if not build_options[:cxx_wrapper]
-        cxx = cxx_comp
-      else
-        cxx = build_options[:cxx_wrapper] == true ? toolchain.cxx_compiler_name : build_options[:cxx_wrapper]
-        cxx = "#{build_dir_for_abi(abi)}/#{cxx}"
-        Build.gen_compiler_wrapper cxx, cxx_comp, toolchain, build_options
-      end
+      cxxflags = toolchain.search_path_for_stl_includes(abi)
 
-      cxxflags = cflags + ' ' + toolchain.search_path_for_stl_includes(abi)
+      ldflags_wrapper_arg = { before: ldflags + " #{toolchain.search_path_for_stl_libs(abi)}",
+                              after:  "-l#{toolchain.stl_lib_name}_shared" }
+
+      cxx = build_options[:cxx_wrapper] == true ? toolchain.cxx_compiler_name : build_options[:cxx_wrapper]
+      cxx = "#{build_dir_for_abi(abi)}/#{cxx}"
+      Build.gen_compiler_wrapper cxx, cxx_comp, toolchain, build_options, cxxflags, ldflags_wrapper_arg
 
       @build_env['CXX']      = cxx
       @build_env['CXXCPP']   = "#{cxx} #{cxxflags} -E"
-      @build_env['CXXFLAGS'] = cxxflags
-      @build_env['LDFLAGS'] += ' ' + toolchain.search_path_for_stl_libs(abi)
+      @build_env['CXXFLAGS'] = cflags
     end
   end
 

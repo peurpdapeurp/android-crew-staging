@@ -5,11 +5,14 @@ class Boost < Package
   url "https://downloads.sourceforge.net/project/boost/boost/${version}/boost_${block}.tar.bz2" do |r| r.version.gsub('.', '_') end
 
   release version: '1.64.0', crystax_version: 1
+  release version: '1.65.1', crystax_version: 1
 
   # todo: add versions, like this: python:2.7.*, python:3.*.*
-  depends_on 'python'
+  # depends_on 'python'
 
   build_options setup_env:            false,
+                use_cxx:              true,
+                cxx_wrapper:          true,
                 copy_installed_dirs:  [],
                 gen_android_mk:       false,
                 wrapper_remove_args:  ['-m32', '-m64', '-single_module', '-lpthread', '-lutil'],
@@ -38,8 +41,8 @@ class Boost < Package
              'math_tr1l',
              'prg_exec_monitor',
              'program_options',
-             'python',
-             'python3',
+             # 'python',
+             # 'python3',
              'random',
              'regex',
              'serialization',
@@ -97,6 +100,7 @@ class Boost < Package
                     "--user-config=#{src_dir}/user-config.jam",
                     "--layout=system",
                     "--without-mpi",
+                    "--without-python",
                     without_libs(release, arch).map { |lib| "--without-#{lib}" }
                   ].flatten
 
@@ -104,6 +108,7 @@ class Boost < Package
     #[Toolchain::GCC_6].each do |toolchain|
     #[Toolchain::LLVM_3_6].each do |toolchain|
     Build::TOOLCHAIN_LIST.each do |toolchain|
+      build_env.clear
       stl_name = toolchain.stl_name
       puts "    using C++ standard library: #{stl_name}"
       # todo: copy sources for every toolchain
@@ -119,48 +124,43 @@ class Boost < Package
       gen_user_config_jam src_dir
 
       build_env.clear
-      cxx = "#{build_dir_for_abi(abi)}/#{toolchain.cxx_compiler_name}"
-      cxxflags = toolchain.cflags(abi) + ' ' +
-                 "--sysroot=#{Build.sysroot(abi)}" + ' ' +
-                 toolchain.search_path_for_stl_includes(abi) + ' ' +
-                 '-fPIC -Wno-long-long'
+
+      setup_build_env(abi, toolchain)
+      @build_env['CXXFLAGS'] += '-fPIC -Wno-long-long'
 
       build_env['PATH'] = "#{src_dir}:#{ENV['PATH']}"
 
       # build without python
       prefix_dir = "#{work_dir}/install"
       build_dir = "#{work_dir}/build"
-      ldflags = { before: "#{toolchain.ldflags(abi)} --sysroot=#{Build.sysroot(abi)} #{toolchain.search_path_for_stl_libs(abi)}",
-                  after:  "-l#{toolchain.stl_lib_name}_shared"
-                }
       gen_project_config_jam src_dir, arch, abi, stl_name, { ver: :none }
-      Build.gen_compiler_wrapper cxx, toolchain.cxx_compiler(arch, abi), toolchain, build_options, cxxflags, ldflags
+
       puts "      building boost libraries"
       args = common_args + [' --without-python', "--build-dir=#{build_dir}", "--prefix=#{prefix_dir}"]
       system "#{src_dir}/b2", *args, 'install'
 
-      # build python libs
-      python_versions.each do |py_ver|
-        py_dir = "#{Global::HOLD_DIR}/python/#{py_ver}"
-        py_lib_dir = "#{py_dir}/shared/#{abi}/libs"
-        ldflags[:after] = "-L#{py_lib_dir} -l#{python_lib_name(py_ver)} " + ldflags[:after]
-        Build.gen_compiler_wrapper cxx, toolchain.cxx_compiler(arch, abi), toolchain, build_options, cxxflags, ldflags
-        py_data = { ver:     py_ver,
-                    abi:     python_abi(py_ver),
-                    dir:     py_dir,
-                    lib_dir: py_lib_dir,
-                    inc_dir: "#{py_dir}/include/python"
-                  }
-        gen_project_config_jam src_dir, arch, abi, stl_name, py_data
-        args = common_args + ["--build-dir=#{build_dir}-#{py_ver}", "--prefix=#{prefix_dir}-#{py_ver}"]
-        #
-        FileUtils.cd("#{src_dir}/libs/python/build") do
-          puts "      building python library for python #{py_ver}"
-          system "#{src_dir}/b2", *args, 'install'
-        end
-        #
-        Dir["#{prefix_dir}-#{py_ver}/lib/*"].each { |p| FileUtils.copy_entry p, "#{prefix_dir}/lib/#{File.basename(p)}" }
-      end
+      # # build python libs
+      # python_versions.each do |py_ver|
+      #   py_dir = "#{Global::HOLD_DIR}/python/#{py_ver}"
+      #   py_lib_dir = "#{py_dir}/shared/#{abi}/libs"
+      #   ldflags[:after] = "-L#{py_lib_dir} -l#{python_lib_name(py_ver)} " + ldflags[:after]
+      #   Build.gen_compiler_wrapper cxx, toolchain.cxx_compiler(arch, abi), toolchain, build_options, cxxflags, ldflags
+      #   py_data = { ver:     py_ver,
+      #               abi:     python_abi(py_ver),
+      #               dir:     py_dir,
+      #               lib_dir: py_lib_dir,
+      #               inc_dir: "#{py_dir}/include/python"
+      #             }
+      #   gen_project_config_jam src_dir, arch, abi, stl_name, py_data
+      #   args = common_args + ["--build-dir=#{build_dir}-#{py_ver}", "--prefix=#{prefix_dir}-#{py_ver}"]
+      #   #
+      #   FileUtils.cd("#{src_dir}/libs/python/build") do
+      #     puts "      building python library for python #{py_ver}"
+      #     system "#{src_dir}/b2", *args, 'install'
+      #   end
+      #   #
+      #   Dir["#{prefix_dir}-#{py_ver}/lib/*"].each { |p| FileUtils.copy_entry p, "#{prefix_dir}/lib/#{File.basename(p)}" }
+      # end
 
       # find and store dependencies for the built libraries
       @lib_deps = Hash.new([])
