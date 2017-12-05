@@ -34,12 +34,12 @@ class Arch
     @name
   end
 
-  MIN_32_API_LEVEL = 9
-  MIN_64_API_LEVEL = 21
+  MIN_32_API_LEVEL = 23
+  MIN_64_API_LEVEL = 23
 
   NAMES = { arm: 'arm', x86: 'x86', mips: 'mips', arm64: 'arm64', x86_64: 'x86_64', mips64: 'mips64' }
 
-  ARM    = Arch.new(NAMES[:arm],    32, MIN_32_API_LEVEL, 'lib',   'arm-linux-androideabi',  'arm-linux-androideabi',  ['armeabi-v7a', 'armeabi-v7a-hard']).freeze
+  ARM    = Arch.new(NAMES[:arm],    32, MIN_32_API_LEVEL, 'lib',   'arm-linux-androideabi',  'arm-linux-androideabi',  ['armeabi-v7a']).freeze
   X86    = Arch.new(NAMES[:x86],    32, MIN_32_API_LEVEL, 'lib',   'i686-linux-android',     'x86',                    ['x86']).freeze
   MIPS   = Arch.new(NAMES[:mips],   32, MIN_32_API_LEVEL, 'lib',   'mipsel-linux-android',   'mipsel-linux-android',   ['mips']).freeze
   ARM64  = Arch.new(NAMES[:arm64],  64, MIN_64_API_LEVEL, 'lib',   'aarch64-linux-android',  'aarch64-linux-android',  ['arm64-v8a']).freeze

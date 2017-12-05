@@ -195,11 +195,9 @@ class Package < TargetBase
     c_comp = toolchain.c_compiler(arch, abi)
     ar, ranlib, readelf = toolchain.tools(arch)
 
-    if build_options[:sysroot_in_cflags]
-      cflags += " --sysroot=#{Build.sysroot(abi)}"
-    else
-      c_comp += " --sysroot=#{Build.sysroot(abi)}"
-    end
+    c_comp += " --sysroot=#{Build.sysroot_libs(abi)}"
+    c_comp += " -isysroot #{Build.sysroot_inc(abi)}"
+    c_comp += " -isystem #{Build.sysroot_inc_arch(abi)}"
 
     if not build_options[:c_wrapper]
       cc = c_comp
@@ -223,7 +221,10 @@ class Package < TargetBase
 
     if build_options[:use_cxx]
       cxx_comp = toolchain.cxx_compiler(arch, abi)
-      cxx_comp += " --sysroot=#{Build.sysroot(abi)}" unless build_options[:sysroot_in_cflags]
+
+      cxx_comp += " --sysroot=#{Build.sysroot_libs(abi)}"
+      cxx_comp += " -isysroot #{Build.sysroot_inc(abi)}"
+      cxx_comp += " -isystem #{Build.sysroot_inc_arch(abi)}"
 
       if not build_options[:cxx_wrapper]
         cxx = cxx_comp

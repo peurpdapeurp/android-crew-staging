@@ -7,7 +7,7 @@ require_relative 'toolchain.rb'
 
 module Build
 
-  API_LEVELS = [3, 4, 5, 8, 9, 12, 13, 14, 15, 16, 17, 18, 19, 21, 23, 24]
+  API_LEVELS = [14, 15, 16, 17, 18, 19, 21, 23, 24, 25, 26]
 
   USER = ENV['USER']
 
@@ -30,7 +30,8 @@ module Build
   CMAKE_TOOLCHAIN_FILE = File.join(Global::NDK_DIR, 'cmake', 'toolchain.cmake')
 
   DEFAULT_TOOLCHAIN = Toolchain::DEFAULT_GCC
-  TOOLCHAIN_LIST = Toolchain::SUPPORTED_GCC + Toolchain::SUPPORTED_LLVM
+  TOOLCHAIN_LIST = Toolchain::SUPPORTED_GCC
+  # + Toolchain::SUPPORTED_LLVM
 
   BINUTILS_VER = '2.25'
   BUG_URL      = 'https://tracker.crystax.net/projects/ndk'
@@ -69,10 +70,25 @@ module Build
     arch_list.select { |arch| arch.abis.include? abi } [0]
   end
 
-  def self.sysroot(abi)
+  def self.sysroot_libs(abi)
     arch = arch_for_abi(abi)
     "#{Global::NDK_DIR}/platforms/android-#{arch.min_api_level}/arch-#{arch.name}"
+    # /usr/#{arch.default_lib_dir}
   end
+
+  def self.sysroot_inc(abi)
+    "#{Global::NDK_DIR}/sysroot"
+  end
+
+  def self.sysroot_inc_arch(abi)
+    arch = arch_for_abi(abi)
+    "#{Global::NDK_DIR}/sysroot/usr/include/#{arch.host}"
+  end
+
+  # def self.sysroot(abi)
+  #   arch = arch_for_abi(abi)
+  #   "#{Global::NDK_DIR}/sysroot"
+  # end
 
   def self.add_dyld_library_path(configure_script, lib_dir)
     lines = File.readlines(configure_script)
