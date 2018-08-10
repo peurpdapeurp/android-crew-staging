@@ -4,7 +4,7 @@ class Ndncert < Package
   homepage "https://github.com/named-data/ndncert"
   url "git://github.com/named-data/ndncert.git|git_commit:e6ea3968ef06e54d7f3328a50925a5970604fcb8"
 
-  release version: '0.1.0', crystax_version: 2
+  release version: '0.1.0', crystax_version: 1
 
   depends_on 'boost'
   depends_on 'ndn_cxx'
@@ -80,7 +80,7 @@ class Ndncert < Package
       @build_env['LINKFLAGS'] = [
         "-L#{@openssl_dir}/libs/#{abi}",
         "-L#{@sqlite3_dir}/libs/#{abi}",
-        "-L#{@ndn_cxx_dir}/libs/#{abi}/#{stl_name}",
+        "-lcrypto", "-lssl", "-lsqlite3",
         "-llog",
       ].join(' ')
 
