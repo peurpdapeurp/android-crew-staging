@@ -63,6 +63,7 @@ class Ndncert < Package
                    "--destdir=#{prefix_dir}",
                    "--boost-includes=#{@boost_dir}/include",
                    "--boost-libs=#{@boost_dir}/libs/#{abi}/#{stl_name}",
+                   "--with-sqlite3=#{@sqlite3_dir}",
                    "--sysconfdir=./etc",
                  ]
       @build_env['CXXFLAGS_NDN_CXX'] = [
