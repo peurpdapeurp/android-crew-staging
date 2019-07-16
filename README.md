@@ -1,33 +1,49 @@
-Crystax NDK's Crew
-================================
+Missing Native Package Manager for Android NDK
+==============================================
+
+**Disclaimer:** This is a customized fork of CrystaX crew tool intended to work with official
+Google NDK.  Not fully tested and only a subset of packages is known to work.
+
+## 1. How to start
+
+`crew` is intended to maintain NDK's toolchains, utilities and libraries.
+
+Utilities are required to run `crew` itself. These includes `ruby` (with `rugged` gem
+installed), `curl`, `tar` and assorted archivers.
+
+On Ubuntu Linux, these dependencies can be installed from packages:
+
+    sudo apt install curl tar ruby ruby-rugged
+
+On macOS, `rugged` gem needs to be installed
+
+    sudo gem install rugged
+
+The crew tool needs to be installed inside NDK folder, e.g., `/opt/android/ndk-bundle`:
+
+    git clone https://github.com/named-data-mobile/android-crew-staging /opt/android/ndk-bundle/crew.dir
+
+To install pre-compiled binaries and/or source, you need to go to the NDK folder and run crew
+commands from there:
 
 
-1. How to start
---------------------------------
+    cd /opt/android/ndk-bundle
+    ./crew.dir/crew <params>
 
-``crew`` is intended to maintain NDK's toolchains, utilities and libraries.
+**WARNING** When updating NDK version from Android Studio or SDK Manager, `crew.dir` and any
+previously installed precompiled binaries are automatically removed.  Therefore, after NDK
+upgrade, you will need to re-clone the crew tool repository and re-install (re-compile) the
+desired libraries.
 
-Utilities are required to run ``crew`` itself. These includes ``ruby``,
-``curl``, ``tar`` and assorted archivers.
-
-Libraries are native libraries that are not integral part of the Crystax
-NDK but instead can be easily installed or removed if
-necessary. Examples of libraires are ``Boost``, ``libpng``,
-``freetype``.
-
-``crew`` is a part of the Crystax NDK installation. To begin with crew
-just install Crystax NDK.
+**WARNING** as of July 16, 2019, the latest Google NDK (version 20) has a problem compiling
+  code for `armeabi` CPU that results in crashes when using the compiled library through JNI.
+  It is recommended to use NDK version 19 if `armeabi` platform support is requireed.
 
 
-2. Commands
---------------------------------
+## 2. Commands
 
-All commands will return 0 code on successful completion, and non-zero
-positive code in case of error.
-
-In the examples below ``crew`` command is run from the top Crystax NDK
-directory.
-
+All commands will return 0 code on successful completion, and non-zero positive code in case of
+error.
 
 ### version
 
@@ -35,7 +51,7 @@ Show crew's internal version.
 
 Example:
 
-    $ ./crew version
+    $ ./crew.dir/crew version
     1.0
 
 
@@ -45,7 +61,7 @@ Output short information about available commands.
 
 Example:
 
-    $ ./crew help
+    $ ./crew.dir/crew help
     Usage: crew [OPTIONS] COMMAND [parameters]
 
     where
@@ -80,13 +96,13 @@ Example:
 List all available formulas, their upstream versions, crystax versions,
 status (installed or not), sources status (installed or not).
 
-Aterisk (``*``) next to utility or library name means that respective
+Aterisk (`*`) next to utility or library name means that respective
 release was installed.
 
 Number in braces along with crystax versions mean that there is more
 recent (crystax) version of the package.
 
-Word ``source`` to the right of a library data means that source code
+Word `source` to the right of a library data means that source code
 for the release was installed.
 
 If 'libs' or 'utils' argument was specified the command will output
@@ -94,7 +110,7 @@ information only about libraries or crew utilitites respectively.
 
 Example:
 
-    $ crew list
+    $ ./crew.dir/crew list
     Utilities:
      * curl        7.42.0  1
      * libarchive  3.1.2   1
@@ -118,7 +134,7 @@ will output info about both.
 
 Example:
 
-    $ crew info curl boost
+    $ ./crew.dir/crew info curl boost
     curl: http://curl.haxx.se/
     type: utility
     releases:
@@ -139,8 +155,8 @@ Install the specified formula(s) and all it's dependencies; if no
 version was specified then the most recent version will be installed;
 otherwise the specified version will be installed.
 
-``install`` command works only with library formulas. You can not install utility.
-But you can upgrade utility (see below ``upgrade`` command description).
+`install` command works only with library formulas. You can not install utility.
+But you can upgrade utility (see below `upgrade` command description).
 
 You can install any number of avaliable versions of any library. For example,
 you can install boost 1.57.0, 1.58.0 and 1.59.0 at the same time. But you can
@@ -150,10 +166,10 @@ the former.
 
 Example:
     
-    $ crew install ruby
+    $ ./crew.dir/crew install ruby
     error: ruby is not available
 
-    $ crew install boost
+    $ ./crew.dir/crew install boost
     boost 1.59.0:1 will be installed
     downloading: .....
     unpacking: .....
@@ -161,7 +177,7 @@ Example:
 
 ### remove name[:version] ...
 
-For every specified formula (and possibly version) the ``remove`` command
+For every specified formula (and possibly version) the `remove` command
 works as follows:
 
 * if the specified formula is not installed then command will do nothing
@@ -178,26 +194,26 @@ works as follows:
 
 Example:
 
-    $ crew remove icu4c
+    $ ./crew.dir/crew remove icu4c
     error: boost+icu4c depends on icu4c
 
-    $ crew remove boost+icu4c
+    $ ./crew.dir/crew remove boost+icu4c
     uninstalling boost+icu4c-1.57.0 ...
     uninstalling boost+icu4c-1.58.0 ...
     uninstalling boost+icu4c-1.59.0 ...
 
-    $ crew remove icu
+    $ ./crew.dir/crew remove icu
     uninstalling icu-54.1 ...
 
 
 ### source name[:version] ...
 
-Install the source code for the specified formula(s); if no ``version``
+Install the source code for the specified formula(s); if no `version`
 was specified then source code for the most recent version will be
 installed; otherwise source code for the specified version will be
 installed.
 
-``source`` command works only with library formulas.
+`source` command works only with library formulas.
 
 You can install sources code for any number of avaliable versions of any
 library. For example, you can install source code for boost 1.57.0,
@@ -207,21 +223,21 @@ You can install source code without installing respective library or
 vice versa.
 
 You can not install source code for the library that differs from
-installed binary package only in ``crystax_version``. That is if you
+installed binary package only in `crystax_version`. That is if you
 have boost 1.60.0:1 installed, then you can not install sources for
 boost 1.60.0:2.
 
 Source code will be installed in the same directory where the specified
 library version was (would be) installed. For example, if you have boost
 1.60.0:1 installed then source code for the library will be installed into the
-``$NDK_ROOT/packages/boost/1.60.0/src`` directory.
+`$NDK_ROOT/packages/boost/1.60.0/src` directory.
 
 Example:
     
-    $ ./crew source ruby
+    $ ./crew.dir/crew source ruby
     error: ruby is not available
 
-    $ ./crew source boost
+    $ ./crew.dir/crew source boost
     source code for boost 1.60.0:1 will be installed
     downloading: .....
     unpacking: .....
@@ -230,27 +246,27 @@ Example:
 ### build name[:version] ...
 
 Build the specified formula(s) from their installed sources code; if no
-``version`` was specified then the most recent version will be used;
+`version` was specified then the most recent version will be used;
 otherwise the specified version will be used.
 
-``build`` command works only with library formulas.
+`build` command works only with library formulas.
 
 The resulting packages will be copied into a package cache dir (default
-depends on the host OS) and unpacked into NDK's ``packages`` directory
-exactly as ``install`` command would do.
+depends on the host OS) and unpacked into NDK's `packages` directory
+exactly as `install` command would do.
 
 Example:
 
-    $ ./crew build boost
+    $ ./crew.dir/crew build boost
     error: boost source is not installed
   
-    $ ./crew build jpeg
+    $ ./crew.dir/crew build jpeg
     Buiding JPEG for architectures: ...
 
 
 ### remove-source name[:version] ...
 
-For every specified formula (and possibly version) the ``remove-source`` command
+For every specified formula (and possibly version) the `remove-source` command
 will remove installed source code.
 
 If source code for the specified formula is not installed then command
@@ -261,10 +277,10 @@ installed source code for the specified formula.
 
 Example:
 
-    $ crew remove-source boost:1.57.0
+    $ ./crew.dir/crew remove-source boost:1.57.0
     removing source code for boost-1.57.0 ...
 
-    $ crew remove-source boost
+    $ ./crew.dir/crew remove-source boost
     removing source code for boost-1.58.0 ...
     removing source code for boost-1.59.0 ...
 
@@ -281,7 +297,7 @@ formulas if any.
 
 Example:
 
-    $ crew update
+    $ ./crew.dir/crew update
     Updated Crew from a813ec99 to 6d2d71e9.
     ==> Updated Utilities
     curl, p7zip, ruby
@@ -312,7 +328,7 @@ For all installed formulas do the following:
 
 Example:
 
-    $ crew upgrade
+    $ ./crew.dir/crew upgrade
     Will install: boost:1.59.0:1, icu4c:55.1:1
     downloading http://localhost:9999/packages/boost/boost-1.59.0_1.7z
     checking integrity of the archive file boost-1.59.0_1.7z
@@ -340,29 +356,27 @@ what it will do but otherwise does nothing.
 
 Example:
 
-    $ crew cleanup -n
+    $ ./crew.dir/crew cleanup -n
     Would remove: icu 54.1
     Would remove: boost 1.56.0
     Would remove: boost 1.57.0
 
-    $ crew cleanup
+    $ ./crew.dir/crew cleanup
     Removing: icu 54.1
     Removing: boost 1.56.0
     Removing: boost 1.57.0
 
 
-3. Environment variables
---------------------------------
+## 3. Environment variables
 
-* ```CREW_PKG_CACHE_DIR```
-* ```CREW_SRC_CACHE_DIR```
-* ```CREW_BASE_DIR```
-* ```CREW_NDK_DIR```
-* ```CREW_DOWNLOAD_BASE```
+* ``CREW_PKG_CACHE_DIR``
+* ``CREW_SRC_CACHE_DIR``
+* ``CREW_BASE_DIR``
+* ``CREW_NDK_DIR``
+* ``CREW_DOWNLOAD_BASE``
 
 
-4. Class Hierarchy
---------------------------------
+## 4. Class Hierarchy
 
 ```
 Formula (no home directory)
