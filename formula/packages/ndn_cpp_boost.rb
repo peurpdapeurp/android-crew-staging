@@ -1,6 +1,6 @@
-class NdnCpp < Package
+class NdnCppBoost < Package
 
-  desc "ndn-cpp library"
+  desc "ndn-cpp library with extra configuration flags to use boost's function and shared_ptr, for use with ndnrtc"
   homepage "https://named-data.net/doc/ndn-cpp/"
   url 'git://github.com/named-data/ndn-cpp.git|git_commit:4ace2ff4e1b9671591797c84f3d8a748a6c2c64e'
 
@@ -36,7 +36,8 @@ class NdnCpp < Package
     @sqlite3_dir = _target_dep_dirs['sqlite']
     @protobuf_dir = _target_dep_dirs['protobuf']
 
-    args =  [
+    args =  [ "--with-std-shared-ptr=no",
+              "--with-std-function=no"
             ]
 
     arch = Build.arch_for_abi(abi)
